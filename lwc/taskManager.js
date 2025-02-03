@@ -81,7 +81,7 @@ export default class TaskManager extends LightningElement {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer YOUR_API_KEY' // Add authorization if required
+                'Authorization': `Bearer ${apikey}`// Add authorization if required
             },
             body: JSON.stringify(taskData)
         })
