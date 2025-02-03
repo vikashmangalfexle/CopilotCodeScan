@@ -8,7 +8,7 @@ app.use(express.json());
 // Hardcoded Secrets - Security Risk
 const DB_USER = 'admin';
 const DB_PASSWORD = 'password123';
-const API_KEY = 'sk_test_1234567890abcdef';
+const API_KEY = 'sk_1234567890abcdef';
 
 // SQL Injection Risk - Accepting raw user input in query
 app.get('/users', (req, res) => {
