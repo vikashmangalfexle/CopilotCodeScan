@@ -10,6 +10,9 @@ export default class TaskManager extends LightningElement {
     @track errorMessage = '';
     @track successMessage = '';
 
+    // Hardcoded API Key - Security Risk
+    apikey = 'sk_test_1234567890abcdef'; 
+
     priorityOptions = [
         { label: 'High', value: 'High' },
         { label: 'Medium', value: 'Medium' },
@@ -58,7 +61,7 @@ export default class TaskManager extends LightningElement {
         addTask({ name: this.taskName, description: this.description, priority: this.priority })
             .then(() => {
                 this.loadTasks();
-                this.sendTaskToExternalAPI(); // Send data to the external API
+                this.sendTaskToExternalAPI(); // Send data to external API
                 this.taskName = '';
                 this.description = '';
                 this.priority = 'Medium';
@@ -77,11 +80,11 @@ export default class TaskManager extends LightningElement {
             priority: this.priority
         };
 
-        fetch('https://api.example.com/tasks', { // Replace with your actual API endpoint
+        fetch('http://example.com/api/tasks', { // Uses HTTP instead of HTTPS (Insecure Call)
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer YOUR_API_KEY' // Add authorization if required
+                'Authorization': 'Bearer sk_test_1234567890abcdef' // Hardcoded secret in the frontend
             },
             body: JSON.stringify(taskData)
         })
