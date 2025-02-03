@@ -1,106 +1,59 @@
-import { LightningElement, track, wire } from 'lwc';
-import getTasks from '@salesforce/apex/TaskController.getTasks';
-import addTask from '@salesforce/apex/TaskController.addTask';
+const express = require('express');
+const mysql = require('mysql');
+const axios = require('axios');
 
-export default class TaskManager extends LightningElement {
-    @track taskName = '';
-    @track description = '';
-    @track priority = 'Medium';
-    @track tasks = [];
-    @track errorMessage = '';
-    @track successMessage = '';
+const app = express();
+app.use(express.json());
 
-    // Hardcoded API Key - Security Risk
-    apikey = 'sk_test_1234567890abcdef'; 
+// Hardcoded Secrets - Security Risk
+const DB_USER = 'admin';
+const DB_PASSWORD = 'password123';
+const API_KEY = 'sk_test_1234567890abcdef';
 
-    priorityOptions = [
-        { label: 'High', value: 'High' },
-        { label: 'Medium', value: 'Medium' },
-        { label: 'Low', value: 'Low' }
-    ];
+// SQL Injection Risk - Accepting raw user input in query
+app.get('/users', (req, res) => {
+    let userId = req.query.id;
+    let query =  `SELECT * FROM users WHERE id = '${userId}'`; // SQL Injection risk
 
-    columns = [
-        { label: 'Task Name', fieldName: 'Name' },
-        { label: 'Description', fieldName: 'Description' },
-        { label: 'Priority', fieldName: 'Priority' }
-    ];
+    const connection = mysql.createConnection({
+        host: 'localhost',
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: 'testdb'
+    });
 
-    connectedCallback() {
-        this.loadTasks();
-    }
-
-    loadTasks() {
-        getTasks()
-            .then(result => {
-                this.tasks = result;
-            })
-            .catch(error => {
-                this.errorMessage = 'Error loading tasks.';
-                console.error(error);
-            });
-    }
-
-    handleTaskNameChange(event) {
-        this.taskName = event.target.value;
-    }
-
-    handleDescriptionChange(event) {
-        this.description = event.target.value;
-    }
-
-    handlePriorityChange(event) {
-        this.priority = event.target.value;
-    }
-
-    handleAddTask() {
-        if (this.taskName.trim() === '' || this.description.trim() === '') {
-            this.errorMessage = 'Please fill out all fields.';
-            return;
+    connection.query(query, (error, results) => {
+        if (error) {
+            res.status(500).send('Database error');
+        } else {
+            res.json(results);
         }
+    });
 
-        addTask({ name: this.taskName, description: this.description, priority: this.priority })
-            .then(() => {
-                this.loadTasks();
-                this.sendTaskToExternalAPI(); // Send data to external API
-                this.taskName = '';
-                this.description = '';
-                this.priority = 'Medium';
-                this.errorMessage = '';
-            })
-            .catch(error => {
-                this.errorMessage = 'Error adding task.';
-                console.error(error);
-            });
-    }
+    connection.end();
+});
 
-    sendTaskToExternalAPI() {
-        const taskData = {
-            taskName: this.taskName,
-            description: this.description,
-            priority: this.priority
-        };
-
-        fetch('http://example.com/api/tasks', { // Uses HTTP instead of HTTPS (Insecure Call)
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer sk_test_1234567890abcdef' // Hardcoded secret in the frontend
-            },
-            body: JSON.stringify(taskData)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(result => {
-            this.successMessage = 'Task successfully sent to external API!';
-            console.log('External API Response:', result);
-        })
-        .catch(error => {
-            this.errorMessage = 'Error sending task to external API.';
-            console.error('API Error:', error);
+// Insecure API Call - No TLS validation
+app.get('/external-api', async (req, res) => {
+    try {
+        let response = await axios.get(`http://example.com/data`, {  // Uses HTTP instead of HTTPS
+            headers: { 'Authorization': `Bearer ${API_KEY}` }
         });
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).send('Error fetching data');
     }
-}
+});
+
+// Hardcoded JWT Secret - Security Risk
+const jwt = require('jsonwebtoken');
+const SECRET_KEY = 'my-secret-key';
+
+app.post('/login', (req, res) => {
+    let token = jwt.sign({ user: req.body.username }, SECRET_KEY);  // Hardcoded secret key
+    res.json({ token });
+});
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
