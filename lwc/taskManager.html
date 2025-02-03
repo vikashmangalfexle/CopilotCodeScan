@@ -3,26 +3,41 @@
         <div class="slds-p-around_medium">
             <lightning-input label="Task Name" value={taskName} onchange={handleTaskNameChange}></lightning-input>
             <lightning-textarea label="Description" value={description} onchange={handleDescriptionChange}></lightning-textarea>
+            
             <lightning-combobox
                 label="Priority"
                 value={priority}
                 options={priorityOptions}
                 onchange={handlePriorityChange}>
             </lightning-combobox>
-            <lightning-button label="Add Task" variant="brand" onclick={handleAddTask} class="slds-m-top_medium"></lightning-button>
+
+            <lightning-button 
+                label="Add Task" 
+                variant="brand" 
+                onclick={handleAddTask} 
+                class="slds-m-top_medium">
+            </lightning-button>
+
+            <!-- Success Message -->
+            <template if:true={successMessage}>
+                <p class="slds-text-color_success slds-p-top_medium">{successMessage}</p>
+            </template>
+
+            <!-- Error Message -->
+            <template if:true={errorMessage}>
+                <p class="slds-text-color_error slds-p-top_medium">{errorMessage}</p>
+            </template>
         </div>
 
+        <!-- Data Table -->
         <template if:true={tasks.length}>
             <lightning-datatable
                 key-field="id"
                 data={tasks}
                 columns={columns}
-                hide-checkbox-column>
+                hide-checkbox-column
+                class="slds-m-around_medium">
             </lightning-datatable>
-        </template>
-
-        <template if:true={errorMessage}>
-            <p class="slds-text-color_error slds-p-top_medium">{errorMessage}</p>
         </template>
     </lightning-card>
 </template>
